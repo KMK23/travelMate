@@ -1,69 +1,93 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { addData, getData, deleteData, updateData } from "../../firebase";
+import { createSlice } from "@reduxjs/toolkit";
+import { createSelector } from "@reduxjs/toolkit";
 
-// Firebase에서 즐겨찾기 조회
-export const fetchFavoritesFromFirebase = createAsyncThunk(
-  "favorites/fetchFromFirebase",
-  async () => {
-    const response = await getData("favorites");
-    return response;
+// Load favorites from localStorage
+const loadFavorites = (userId) => {
+  try {
+    const key = `favorites_${userId}`;
+    console.log("Loading favorites with key:", key);
+    const serializedFavorites = localStorage.getItem(key);
+    console.log("Loaded favorites:", serializedFavorites);
+    if (serializedFavorites === null) {
+      return [];
+    }
+    return JSON.parse(serializedFavorites);
+  } catch (err) {
+    console.error("Error loading favorites from localStorage:", err);
+    return [];
   }
-);
+};
 
-// Firebase에 즐겨찾기 추가
-export const addFavoriteToFirebase = createAsyncThunk(
-  "favorites/addToFirebase",
-  async (favorite) => {
-    const response = await addData("favorites", favorite);
-    return response;
+// Save favorites to localStorage
+const saveFavorites = (favorites, userId) => {
+  try {
+    const key = `favorites_${userId}`;
+    console.log("Saving favorites with key:", key);
+    console.log("Saving favorites data:", favorites);
+    localStorage.setItem(key, JSON.stringify(favorites));
+  } catch (err) {
+    console.error("Error saving favorites to localStorage:", err);
   }
-);
-
-// Firebase에서 즐겨찾기 삭제
-export const deleteFavoriteFromFirebase = createAsyncThunk(
-  "favorites/deleteFromFirebase",
-  async (favoriteId) => {
-    await deleteData("favorites", favoriteId);
-    return favoriteId;
-  }
-);
+};
 
 const favoritesSlice = createSlice({
   name: "favorites",
   initialState: {
     items: [],
-    status: "idle",
-    error: null,
   },
   reducers: {
-    clearFavorites: (state) => {
-      state.items = [];
-      state.status = "idle";
-      state.error = null;
+    loadFavoritesFromStorage: (state, action) => {
+      const userId = action.payload;
+      console.log("Loading favorites for userId:", userId);
+      state.items = loadFavorites(userId);
+      console.log("Loaded items into state:", state.items);
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchFavoritesFromFirebase.pending, (state) => {
-        state.status = "loading";
-        state.error = null;
-      })
-      .addCase(fetchFavoritesFromFirebase.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.items = action.payload;
-      })
-      .addCase(fetchFavoritesFromFirebase.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.error.message;
-      })
-      .addCase(addFavoriteToFirebase.fulfilled, (state, action) => {
-        state.items.push(action.payload);
-      })
-      .addCase(deleteFavoriteFromFirebase.fulfilled, (state, action) => {
-        state.items = state.items.filter((item) => item.id !== action.payload);
-      });
+    addFavorite: (state, action) => {
+      const { item, userId } = action.payload;
+      console.log("Adding favorite:", item);
+      console.log("Current items:", state.items);
+
+      // 중복 체크
+      const isDuplicate = state.items.some(
+        (existing) => existing.contentId === item.contentId
+      );
+
+      if (!isDuplicate) {
+        state.items.push(item);
+        console.log("Updated items after add:", state.items);
+        saveFavorites(state.items, userId);
+      } else {
+        console.log("Item already exists in favorites");
+      }
+    },
+    removeFavorite: (state, action) => {
+      const { contentId, userId } = action.payload;
+      console.log("Removing favorite with contentId:", contentId);
+      state.items = state.items.filter((item) => item.contentId !== contentId);
+      console.log("Updated items after remove:", state.items);
+      saveFavorites(state.items, userId);
+    },
+    clearFavorites: (state, action) => {
+      const userId = action.payload;
+      state.items = [];
+      saveFavorites(state.items, userId);
+    },
   },
 });
 
-export const { clearFavorites } = favoritesSlice.actions;
+// Memoized Selectors
+const selectFavoritesState = (state) => state.favorites;
+
+export const selectFavoriteItems = createSelector(
+  [selectFavoritesState],
+  (favorites) => favorites?.items || []
+);
+
+export const {
+  addFavorite,
+  removeFavorite,
+  clearFavorites,
+  loadFavoritesFromStorage,
+} = favoritesSlice.actions;
+
 export default favoritesSlice.reducer;

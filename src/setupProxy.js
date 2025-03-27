@@ -21,4 +21,20 @@ module.exports = function (app) {
       },
     })
   );
+
+  app.use(
+    "/v2/maps",
+    createProxyMiddleware({
+      target: "https://dapi.kakao.com",
+      changeOrigin: true,
+    })
+  );
+
+  app.use(
+    "/api/weather",
+    createProxyMiddleware({
+      target: "http://api.openweathermap.org",
+      changeOrigin: true,
+    })
+  );
 };

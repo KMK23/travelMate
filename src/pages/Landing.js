@@ -20,14 +20,14 @@ const Landing = () => {
           <p>
             제주도의 숨은 명소부터 인기 관광지까지
             <br />
-            트래블메이트와 함께 특별한 여행을 시작하세요
+            travelmate와 함께 특별한 여행을 시작하세요
           </p>
 
           <div className="login-section">
             <h2>시작하기</h2>
             <SocialLogin />
             <p className="terms">
-              시작하기를 클릭하면 트래블메이트의
+              시작하기를 클릭하면 travelmate의
               <br />
               <a href="/terms">이용약관</a>과{" "}
               <a href="/privacy">개인정보 처리방침</a>에 동의하게 됩니다

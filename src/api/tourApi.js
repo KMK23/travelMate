@@ -27,7 +27,7 @@ const parseXML = (xmlString) => {
   // items 배열 추출
   const items = xmlDoc.querySelectorAll("item");
   return Array.from(items).map((item) => ({
-    contentid: item.querySelector("contentid")?.textContent,
+    contentId: item.querySelector("contentid")?.textContent,
     title: item.querySelector("title")?.textContent,
     addr1: item.querySelector("addr1")?.textContent,
     firstimage: item.querySelector("firstimage")?.textContent,

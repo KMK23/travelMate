@@ -13,6 +13,9 @@ import Landing from "./pages/Landing";
 import "./styles/App.scss";
 import SocialLogin from "./components/auth/SocialLogin";
 import NaverCallback from "./components/auth/NaverCallback";
+import Favorites from "./pages/Favorites";
+import LocationBased from "./pages/LocationBased";
+import Categories from "./pages/Categories";
 
 const PrivateRoute = ({ children }) => {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -29,20 +32,48 @@ const App = () => {
 
   return (
     <Router>
-      <Header />
-      <Routes>
-        <Route path="/landing" element={<Landing />} />
-        <Route path="/auth/naver/callback" element={<NaverCallback />} />
-        <Route
-          path="/"
-          element={
-            <PrivateRoute>
-              <Home />
-            </PrivateRoute>
-          }
-        />
-      </Routes>
-      <Footer />
+      <div className="App">
+        <Header />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <Home />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/favorites"
+            element={
+              <PrivateRoute>
+                <>
+                  <Favorites />
+                </>
+              </PrivateRoute>
+            }
+          />
+          <Route path="/landing" element={<Landing />} />
+          <Route path="/auth/naver/callback" element={<NaverCallback />} />
+          <Route
+            path="/location-based"
+            element={
+              <PrivateRoute>
+                <LocationBased />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/categories"
+            element={
+              <PrivateRoute>
+                <Categories />
+              </PrivateRoute>
+            }
+          />
+        </Routes>
+        <Footer />
+      </div>
     </Router>
   );
 };

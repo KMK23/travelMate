@@ -19,6 +19,10 @@ import {
   deleteDoc,
   doc,
   updateDoc,
+  query,
+  where,
+  setDoc,
+  getDoc,
 } from "@firebase/firestore";
 
 // Your web app's Firebase configuration
@@ -39,6 +43,8 @@ const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+export { db };
+
 // 네이버 로그인
 export const signInWithNaver = async () => {
   try {
@@ -56,16 +62,49 @@ export const signInWithNaver = async () => {
 
     // 로그인 요청
     return new Promise((resolve, reject) => {
-      naverLogin.getLoginStatus((status) => {
+      naverLogin.getLoginStatus(async (status) => {
         if (status) {
-          const user = {
-            uid: `naver:${naverLogin.user.id}`,
-            displayName: naverLogin.user.name,
-            email: naverLogin.user.email,
-            photoURL: naverLogin.user.profile_image,
-            provider: "naver",
-          };
-          resolve(user);
+          console.log("네이버 사용자 정보:", naverLogin.user);
+
+          try {
+            // 사용자 정보 구성
+            const user = {
+              displayName: naverLogin.user.name,
+              email: naverLogin.user.email,
+              photoURL: naverLogin.user.profile_image,
+              provider: "naver",
+            };
+
+            console.log("저장할 네이버 사용자 정보:", user);
+
+            // 사용자 문서 생성 (자동 ID 사용)
+            const userCollectionRef = collection(db, "users");
+            const userDocRef = await addDoc(userCollectionRef, {
+              ...user,
+              lastLoginAt: new Date().toISOString(),
+            });
+
+            const userData = {
+              ...user,
+              uid: userDocRef.id,
+            };
+
+            console.log("네이버 사용자 정보 저장 완료:", userData);
+
+            // 로컬 스토리지에 인증 상태 저장
+            localStorage.setItem(
+              "authState",
+              JSON.stringify({
+                isAuthenticated: true,
+                user: userData,
+              })
+            );
+
+            resolve(userData);
+          } catch (error) {
+            console.error("네이버 사용자 정보 저장 실패:", error);
+            reject(error);
+          }
         } else {
           naverLogin.authorize();
           resolve(null);
@@ -118,9 +157,15 @@ export const onAuthChange = (callback) => {
 };
 
 // 데이터 추가
-export const addDatas = async (collectionName, data) => {
+export const addDatas = async (collectionName, data, userId = null) => {
   try {
-    const docRef = await addDoc(collection(db, collectionName), data);
+    let docRef;
+    if (userId && collectionName === "favorites") {
+      // users/{userId}/favorites 컬렉션에 추가
+      docRef = await addDoc(collection(db, "users", userId, "favorites"), data);
+    } else {
+      docRef = await addDoc(collection(db, collectionName), data);
+    }
     return { id: docRef.id, ...data };
   } catch (error) {
     console.error("Error adding data:", error);
@@ -129,9 +174,17 @@ export const addDatas = async (collectionName, data) => {
 };
 
 // 데이터 조회
-export const getDatas = async (collectionName) => {
+export const getDatas = async (collectionName, userId = null) => {
   try {
-    const querySnapshot = await getDocs(collection(db, collectionName));
+    let querySnapshot;
+    if (userId && collectionName === "favorites") {
+      // users/{userId}/favorites 컬렉션에서 조회
+      querySnapshot = await getDocs(
+        collection(db, "users", userId, "favorites")
+      );
+    } else {
+      querySnapshot = await getDocs(collection(db, collectionName));
+    }
     return querySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
@@ -143,9 +196,14 @@ export const getDatas = async (collectionName) => {
 };
 
 // 데이터 삭제
-export const deleteDatas = async (collectionName, docId) => {
+export const deleteDatas = async (collectionName, docId, userId = null) => {
   try {
-    await deleteDoc(doc(db, collectionName, docId));
+    if (userId && collectionName === "favorites") {
+      // users/{userId}/favorites/{docId} 문서 삭제
+      await deleteDoc(doc(db, "users", userId, "favorites", docId));
+    } else {
+      await deleteDoc(doc(db, collectionName, docId));
+    }
     return docId;
   } catch (error) {
     console.error("Error deleting data:", error);
@@ -170,9 +228,9 @@ export const signInWithKakao = async () => {
   try {
     console.log("카카오 로그인 시작");
 
-    // Kakao SDK 초기화 확인 (동일한 키 사용)
+    // Kakao SDK 초기화 확인
     if (!window.Kakao.isInitialized()) {
-      window.Kakao.init("c24eaf7be166a89019002f13c5e19778"); // JavaScript 키 통일
+      window.Kakao.init("c24eaf7be166a89019002f13c5e19778");
     }
 
     // 카카오 로그인 요청
@@ -204,16 +262,40 @@ export const signInWithKakao = async () => {
       });
     });
 
-    // Firebase Custom Token을 발급받아야 하지만, 현재는 임시로 사용자 객체 반환
+    // 사용자 정보 구성
     const user = {
-      uid: `kakao:${profile.id}`,
       displayName: profile.properties.nickname,
       photoURL: profile.properties.profile_image,
-      email: profile.kakao_account?.email,
+      email: null, // 카카오는 이메일을 null로 설정
       provider: "kakao",
     };
 
-    return user;
+    console.log("저장할 카카오 사용자 정보:", user);
+
+    // 사용자 문서 생성 (자동 ID 사용)
+    const userCollectionRef = collection(db, "users");
+    const userDocRef = await addDoc(userCollectionRef, {
+      ...user,
+      lastLoginAt: new Date().toISOString(),
+    });
+
+    const userData = {
+      ...user,
+      uid: userDocRef.id,
+    };
+
+    console.log("카카오 사용자 정보 저장 완료:", userData);
+
+    // 로컬 스토리지에 인증 상태 저장
+    localStorage.setItem(
+      "authState",
+      JSON.stringify({
+        isAuthenticated: true,
+        user: userData,
+      })
+    );
+
+    return userData;
   } catch (error) {
     console.error("카카오 로그인 에러:", error);
     throw error;
@@ -285,33 +367,34 @@ export const signInWithGoogle = async () => {
 // 사용자 정보 저장
 export const saveUserToFirestore = async (user) => {
   try {
+    if (!user || !user.uid) {
+      throw new Error("유효하지 않은 사용자 정보입니다.");
+    }
+
+    console.log("Firestore에 저장할 사용자 정보:", user);
+
+    // 문서 ID를 uid로 설정
+    const userDocRef = doc(db, "users", user.uid);
+
+    // 사용자 문서에 저장할 필드 데이터
     const userData = {
       uid: user.uid,
-      email: user.email,
-      displayName: user.displayName,
-      photoURL: user.photoURL,
-      provider: user.provider,
+      email: user.email || null,
+      displayName: user.displayName || null,
+      photoURL: user.photoURL || null,
+      provider: user.provider || null,
       lastLoginAt: new Date().toISOString(),
-      favorites: {
-        attractions: [], // 관광지
-        culture: [], // 문화시설
-        festivals: [], // 축제/공연/행사
-        courses: [], // 여행코스
-        leisure: [], // 레포츠
-        accommodation: [], // 숙박
-        shopping: [], // 쇼핑
-        restaurants: [], // 음식점
-      },
     };
 
-    await addDatas("users", user.uid, userData);
-    console.log("사용자 정보 저장 완료");
+    // 사용자 문서 생성 또는 업데이트 (merge: true로 설정하여 기존 데이터 유지)
+    await setDoc(userDocRef, userData, { merge: true });
+    console.log("사용자 정보 저장 완료:", userData);
 
-    // 로컬 스토리지에도 favorites 정보 저장
-    localStorage.setItem(
-      `favorites_${user.uid}`,
-      JSON.stringify(userData.favorites)
-    );
+    // 저장된 문서 확인
+    const savedDoc = await getDoc(userDocRef);
+    if (!savedDoc.exists()) {
+      throw new Error("사용자 문서 저장 실패");
+    }
 
     return userData;
   } catch (error) {
@@ -387,6 +470,97 @@ export const removeFavoriteItem = async (uid, category, itemId) => {
     return favorites;
   } catch (error) {
     console.error("즐겨찾기 삭제 실패:", error);
+    throw error;
+  }
+};
+
+// Firestore 즐겨찾기 관련 함수들
+export const addFavoriteToFirestore = async (userId, favoriteData) => {
+  try {
+    console.log("즐겨찾기 추가 시도:", { userId, favoriteData });
+
+    const userDocRef = doc(db, "users", userId);
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+      console.error("사용자 문서가 존재하지 않음:", userId);
+
+      // 사용자 정보를 로컬 스토리지에서 가져와서 문서 생성 시도
+      const authState = JSON.parse(localStorage.getItem("authState"));
+      if (authState?.user) {
+        console.log("로컬 스토리지의 사용자 정보로 문서 생성 시도");
+        await setDoc(userDocRef, {
+          ...authState.user,
+          lastLoginAt: new Date().toISOString(),
+        });
+      } else {
+        throw new Error("사용자 문서가 존재하지 않습니다.");
+      }
+    }
+
+    // 사용자 문서의 하위 컬렉션으로 favorites 추가
+    const favoritesCollectionRef = collection(userDocRef, "favorites");
+    const docRef = await addDoc(favoritesCollectionRef, {
+      ...favoriteData,
+      addedAt: new Date().toISOString(),
+    });
+
+    console.log("Firestore에 즐겨찾기 추가 완료:", docRef.id);
+    return docRef.id;
+  } catch (error) {
+    console.error("Firestore 즐겨찾기 추가 중 오류:", error);
+    throw error;
+  }
+};
+
+export const removeFavoriteFromFirestore = async (userId, contentId) => {
+  try {
+    const userDocRef = doc(db, "users", userId);
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+      throw new Error("사용자 문서가 존재하지 않습니다.");
+    }
+
+    const favoritesCollectionRef = collection(userDocRef, "favorites");
+    const q = query(
+      favoritesCollectionRef,
+      where("contentId", "==", contentId)
+    );
+    const querySnapshot = await getDocs(q);
+
+    querySnapshot.forEach(async (document) => {
+      await deleteDoc(doc(userDocRef, "favorites", document.id));
+    });
+
+    console.log("Firestore에서 즐겨찾기 삭제 완료");
+  } catch (error) {
+    console.error("Firestore 즐겨찾기 삭제 중 오류:", error);
+    throw error;
+  }
+};
+
+export const getFavoritesFromFirestore = async (userId) => {
+  try {
+    const userDocRef = doc(db, "users", userId);
+    const userDoc = await getDoc(userDocRef);
+
+    if (!userDoc.exists()) {
+      throw new Error("사용자 문서가 존재하지 않습니다.");
+    }
+
+    const favoritesCollectionRef = collection(userDocRef, "favorites");
+    const querySnapshot = await getDocs(favoritesCollectionRef);
+
+    const favorites = [];
+    querySnapshot.forEach((doc) => {
+      favorites.push({ id: doc.id, ...doc.data() });
+    });
+
+    console.log("Firestore에서 즐겨찾기 목록 로드 완료:", favorites);
+    return favorites;
+  } catch (error) {
+    console.error("Firestore 즐겨찾기 목록 로드 중 오류:", error);
     throw error;
   }
 };

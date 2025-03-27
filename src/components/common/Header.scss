@@ -32,37 +32,60 @@
 
   .nav-links {
     display: flex;
-    gap: $spacing-md;
     align-items: center;
+    gap: 1.5rem;
 
     .nav-link {
-      color: $text-color;
-      text-decoration: none;
-      font-size: $font-md;
-      padding: $spacing-xs $spacing-sm;
-      border-radius: $border-radius;
       display: flex;
       align-items: center;
-      gap: $spacing-xs;
-      transition: all 0.3s ease;
-
-      i {
-        font-size: $font-md;
-      }
+      gap: 0.5rem;
+      color: #333;
+      text-decoration: none;
+      font-size: 1rem;
+      transition: color 0.2s ease;
 
       &:hover {
-        color: $primary-color;
-        background-color: $background-light;
+        color: #007bff;
+      }
+
+      &.favorites {
+        position: relative;
+
+        .heart-icon {
+          color: #ff4757;
+        }
+
+        .favorites-count {
+          position: absolute;
+          top: -8px;
+          right: -12px;
+          background: #ff4757;
+          color: white;
+          border-radius: 50%;
+          width: 20px;
+          height: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 0.8rem;
+          font-weight: bold;
+        }
       }
 
       &.logout {
         background: none;
         border: none;
         cursor: pointer;
+        padding: 0;
+        font-size: 1rem;
 
         &:hover {
-          color: $primary-color;
+          color: #dc3545;
         }
+      }
+
+      i {
+        font-size: 1.2rem;
       }
     }
   }
