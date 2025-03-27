@@ -1,0 +1,54 @@
+@import "../../styles/variables";
+
+.search-bar {
+  width: 100%;
+  max-width: 600px;
+  position: relative;
+
+  input {
+    width: 100%;
+    padding: $spacing-md;
+    font-size: $font-md;
+    border: none;
+    border-radius: $border-radius;
+    background-color: $white;
+    box-shadow: $box-shadow;
+
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px $primary-color;
+    }
+
+    &::placeholder {
+      color: $text-light;
+    }
+  }
+
+  button {
+    position: absolute;
+    right: $spacing-sm;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: $primary-color;
+    cursor: pointer;
+    padding: $spacing-xs;
+
+    &:hover {
+      color: darken($primary-color, 10%);
+    }
+  }
+}
+
+// 반응형 스타일
+@media (max-width: 768px) {
+  .search-bar {
+    flex-direction: column;
+    padding: 0.5rem;
+
+    .search-button {
+      width: 100%;
+    }
+  }
+}

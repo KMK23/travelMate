@@ -1,0 +1,185 @@
+@import "./styles/variables.scss";
+
+.nearby-attractions {
+  padding: 2rem;
+
+  .section-title {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 2rem;
+    color: #333;
+    position: relative;
+
+    &:after {
+      content: "";
+      position: absolute;
+      bottom: -0.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 60px;
+      height: 3px;
+      background-color: #007bff;
+    }
+  }
+
+  .tabs-container {
+    margin-bottom: 2rem;
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+
+      .tab {
+        padding: 0.5rem 1rem;
+        border: none;
+        background: #f8f9fa;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+
+        &:hover {
+          background: #e9ecef;
+        }
+
+        &.active {
+          background: #007bff;
+          color: white;
+        }
+      }
+    }
+  }
+
+  .attractions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+
+    .attraction-card {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: translateY(-5px);
+      }
+
+      .attraction-image {
+        height: 200px;
+        overflow: hidden;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.3s ease;
+
+          &.no-image {
+            object-fit: cover;
+            padding: 0;
+            opacity: 0.8;
+            background-color: #f8f9fa;
+          }
+        }
+      }
+
+      .attraction-info {
+        padding: 1rem;
+
+        h3 {
+          margin: 0 0 0.5rem;
+          font-size: 1.1rem;
+          color: #333;
+          line-height: 1.4;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .address {
+          font-size: 0.9rem;
+          color: #666;
+          margin: 0 0 0.5rem;
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        .tel {
+          font-size: 0.9rem;
+          color: #007bff;
+          margin: 0;
+        }
+      }
+    }
+  }
+
+  .loading {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+  }
+
+  .error {
+    text-align: center;
+    padding: 2rem;
+    color: #dc3545;
+  }
+
+  .no-data {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .nearby-attractions {
+    padding: 1rem;
+
+    .section-title {
+      font-size: 1.5rem;
+    }
+
+    .tabs-container {
+      .tabs {
+        .tab {
+          font-size: 0.8rem;
+          padding: 0.4rem 0.8rem;
+        }
+      }
+    }
+
+    .attractions-grid {
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 1rem;
+
+      .attraction-card {
+        .attraction-image {
+          height: 180px;
+        }
+
+        .attraction-info {
+          h3 {
+            font-size: 1rem;
+          }
+        }
+      }
+    }
+  }
+}

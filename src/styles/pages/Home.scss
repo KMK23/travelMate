@@ -1,0 +1,345 @@
+@import "../../styles/variables";
+
+.home {
+  .hero {
+    height: 70vh;
+    background-size: cover;
+    background-position: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: $white;
+    padding: $spacing-lg;
+
+    h1 {
+      font-size: $font-hero;
+      margin-bottom: $spacing-sm;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    p {
+      font-size: $font-lg;
+      margin-bottom: $spacing-md;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+    }
+  }
+
+  section {
+    padding: $spacing-lg $spacing-md;
+
+    h2 {
+      font-size: $font-xxl;
+      margin-bottom: $spacing-md;
+      color: $text-color;
+      text-align: center;
+    }
+  }
+
+  .featured-destinations {
+    background-color: $background-light;
+
+    .destination-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: $spacing-md;
+      margin-top: $spacing-md;
+    }
+
+    .attraction-card {
+      background: $white;
+      border-radius: $border-radius;
+      overflow: hidden;
+      box-shadow: $box-shadow;
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: translateY(-5px);
+      }
+
+      img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+      }
+
+      h3 {
+        padding: $spacing-sm;
+        margin: 0;
+        font-size: $font-md;
+        color: $text-color;
+      }
+
+      p {
+        padding: 0 $spacing-sm $spacing-sm;
+        margin: 0;
+        color: $text-light;
+      }
+
+      .card-tags {
+        padding: 0 $spacing-sm $spacing-sm;
+        display: flex;
+        gap: $spacing-xs;
+        flex-wrap: wrap;
+
+        .tag {
+          background-color: $background-light;
+          padding: $spacing-xs $spacing-sm;
+          border-radius: $border-radius-lg;
+          font-size: $font-xs;
+          color: $text-light;
+        }
+      }
+    }
+  }
+
+  .jeju-highlights {
+    padding: $spacing-xl $spacing-lg;
+    background-color: $background-light;
+
+    h2 {
+      text-align: center;
+      margin-bottom: $spacing-xl;
+      font-size: $font-xxl;
+      color: $text-color;
+      position: relative;
+
+      &:after {
+        content: "";
+        position: absolute;
+        bottom: -$spacing-sm;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 3px;
+        background-color: $primary-color;
+      }
+    }
+
+    .highlights-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: $spacing-lg;
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 $spacing-md;
+    }
+
+    .highlight-card {
+      background: $white;
+      border-radius: $border-radius-lg;
+      overflow: hidden;
+      box-shadow: $box-shadow;
+      transition: all 0.3s ease;
+      height: 100%;
+
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
+
+        .highlight-image {
+          .highlight-overlay {
+            opacity: 1;
+          }
+
+          img {
+            transform: scale(1.05);
+          }
+        }
+      }
+
+      .highlight-image {
+        height: 250px;
+        overflow: hidden;
+        position: relative;
+
+        img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transition: transform 0.3s ease;
+        }
+
+        .highlight-overlay {
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+
+          .highlight-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            i {
+              font-size: $font-xl;
+              color: $primary-color;
+            }
+          }
+        }
+      }
+
+      .highlight-content {
+        padding: $spacing-md;
+
+        h3 {
+          font-size: $font-xl;
+          margin-bottom: $spacing-xs;
+          color: $text-color;
+          font-weight: 600;
+        }
+
+        .highlight-description {
+          color: $primary-color;
+          margin-bottom: $spacing-sm;
+          font-weight: 500;
+        }
+
+        .highlight-details {
+          color: $text-light;
+          font-size: $font-sm;
+          line-height: 1.6;
+        }
+      }
+    }
+  }
+
+  .popular-festivals {
+    background-color: $background-light;
+
+    .festival-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: $spacing-md;
+      margin-top: $spacing-md;
+    }
+
+    .festival-card {
+      background: $white;
+      border-radius: $border-radius;
+      overflow: hidden;
+      box-shadow: $box-shadow;
+      transition: transform 0.3s ease;
+
+      &:hover {
+        transform: translateY(-5px);
+      }
+
+      img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+      }
+
+      h3 {
+        padding: $spacing-sm;
+        margin: 0;
+        font-size: $font-md;
+        color: $text-color;
+      }
+
+      p {
+        padding: 0 $spacing-sm;
+        margin: 0;
+        color: $text-light;
+      }
+
+      .festival-date {
+        padding: $spacing-sm;
+        color: $primary-color;
+        font-size: $font-xs;
+        border-top: 1px solid #eee;
+        margin-top: $spacing-sm;
+      }
+    }
+  }
+}
+
+// 반응형 스타일
+@media (max-width: $tablet) {
+  .home {
+    .hero {
+      height: 60vh;
+
+      h1 {
+        font-size: $font-xxl;
+      }
+
+      p {
+        font-size: $font-md;
+      }
+    }
+
+    .jeju-highlights {
+      padding: $spacing-lg $spacing-md;
+
+      .highlights-grid {
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      }
+
+      .highlight-card {
+        .highlight-image {
+          height: 200px;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: $mobile) {
+  .home {
+    .hero {
+      height: 50vh;
+      padding: $spacing-md;
+
+      h1 {
+        font-size: $font-xl;
+      }
+
+      p {
+        font-size: $font-sm;
+      }
+    }
+
+    .jeju-highlights {
+      padding: $spacing-md;
+
+      h2 {
+        font-size: $font-xl;
+        margin-bottom: $spacing-lg;
+      }
+
+      .highlights-grid {
+        grid-template-columns: 1fr;
+        gap: $spacing-md;
+      }
+    }
+
+    section {
+      h2 {
+        font-size: $font-lg;
+        margin-bottom: $spacing-sm;
+      }
+    }
+
+    .destination-grid,
+    .festival-grid {
+      grid-template-columns: 1fr;
+      gap: $spacing-sm;
+      padding: 0 $spacing-xs;
+    }
+  }
+}

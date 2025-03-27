@@ -1,0 +1,98 @@
+@import "../../styles/variables";
+
+.header {
+  background-color: $white;
+  box-shadow: $box-shadow;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: $spacing-md;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    font-size: $font-lg;
+    font-weight: bold;
+    color: $primary-color;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+
+    i {
+      font-size: $font-xl;
+    }
+  }
+
+  .nav-links {
+    display: flex;
+    gap: $spacing-md;
+    align-items: center;
+
+    .nav-link {
+      color: $text-color;
+      text-decoration: none;
+      font-size: $font-md;
+      padding: $spacing-xs $spacing-sm;
+      border-radius: $border-radius;
+      display: flex;
+      align-items: center;
+      gap: $spacing-xs;
+      transition: all 0.3s ease;
+
+      i {
+        font-size: $font-md;
+      }
+
+      &:hover {
+        color: $primary-color;
+        background-color: $background-light;
+      }
+
+      &.logout {
+        background: none;
+        border: none;
+        cursor: pointer;
+
+        &:hover {
+          color: $primary-color;
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: $mobile) {
+  .header {
+    .container {
+      padding: $spacing-sm;
+    }
+
+    .logo {
+      font-size: $font-md;
+
+      i {
+        font-size: $font-lg;
+      }
+    }
+
+    .nav-links {
+      gap: $spacing-sm;
+
+      .nav-link {
+        font-size: $font-sm;
+        padding: $spacing-xs;
+
+        i {
+          font-size: $font-sm;
+        }
+      }
+    }
+  }
+}

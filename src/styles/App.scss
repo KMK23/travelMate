@@ -1,0 +1,19 @@
+@import "./Main.scss";
+@import "./Header.scss";
+@import "./Footer.scss";
+@import "./Home.scss";
+@import "./pages/Attractions.scss";
+@import "./pages/Festivals.scss";
+
+.App {
+  text-align: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}

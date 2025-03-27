@@ -1,0 +1,95 @@
+@import "../../styles/variables";
+
+.header {
+  background-color: $white;
+  box-shadow: $box-shadow;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: $spacing-sm $spacing-md;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .logo {
+    font-size: $font-lg;
+    font-weight: bold;
+    color: $primary-color;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: $spacing-xs;
+
+    img {
+      height: 30px;
+    }
+  }
+
+  .nav-links {
+    display: flex;
+    gap: $spacing-md;
+    align-items: center;
+
+    a {
+      color: $text-color;
+      text-decoration: none;
+      font-size: $font-md;
+      padding: $spacing-xs $spacing-sm;
+      border-radius: $border-radius;
+      transition: all 0.3s ease;
+
+      &:hover {
+        color: $primary-color;
+        background-color: $background-light;
+      }
+
+      &.active {
+        color: $primary-color;
+        font-weight: bold;
+      }
+    }
+  }
+
+  .mobile-menu {
+    display: none;
+    font-size: $font-lg;
+    color: $text-color;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: $spacing-xs;
+
+    &:hover {
+      color: $primary-color;
+    }
+  }
+}
+
+@media (max-width: $mobile) {
+  .header {
+    .nav-links {
+      display: none;
+
+      &.active {
+        display: flex;
+        flex-direction: column;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background-color: $white;
+        padding: $spacing-md;
+        box-shadow: $box-shadow;
+      }
+    }
+
+    .mobile-menu {
+      display: block;
+    }
+  }
+}
