@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { FcGoogle } from "react-icons/fc";
+import { SiNaver, SiKakaotalk } from "react-icons/si";
 import {
   signInWithNaver,
   signInWithKakao,
@@ -10,7 +12,6 @@ import {
   saveUserToFirestore,
 } from "../../firebase";
 import { loginSuccess } from "../../store/slices/authSlice";
-import "./SocialLogin.css";
 
 const SocialLogin = () => {
   const dispatch = useDispatch();
@@ -132,34 +133,33 @@ const SocialLogin = () => {
   };
 
   return (
-    <div className="social-login">
-      <h2>소셜 로그인</h2>
+    <div className="social-buttons">
       {error && <div className="error-message">{error}</div>}
 
       <button
-        className={`social-login-button kakao ${isLoading ? "disabled" : ""}`}
+        className={`social-button kakao ${isLoading ? "disabled" : ""}`}
         onClick={handleKakaoLogin}
         disabled={isLoading}
       >
-        <span className="social-icon">K</span>
+        <SiKakaotalk size={18} />
         카카오로 시작하기
       </button>
 
       <button
-        className={`social-login-button naver ${isLoading ? "disabled" : ""}`}
+        className={`social-button naver ${isLoading ? "disabled" : ""}`}
         onClick={handleNaverLogin}
         disabled={isLoading}
       >
-        <span className="social-icon">N</span>
+        <SiNaver size={18} />
         네이버로 시작하기
       </button>
 
       <button
-        className={`social-login-button google ${isLoading ? "disabled" : ""}`}
+        className={`social-button google ${isLoading ? "disabled" : ""}`}
         onClick={handleGoogleLogin}
         disabled={isLoading}
       >
-        <span className="social-icon">G</span>
+        <FcGoogle size={18} />
         구글로 시작하기
       </button>
     </div>
