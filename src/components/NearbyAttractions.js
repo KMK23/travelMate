@@ -28,75 +28,39 @@ const contentTypeMap = {
   39: "음식점",
 };
 
-const NearbyAttractions = ({ onSearch }) => {
-  const dispatch = useDispatch();
-  const locationBasedList = useSelector(
-    (state) => state.locationBased?.items || []
-  );
-  const [searchTerm, setSearchTerm] = useState("");
-  const status = useSelector((state) => state.locationBased?.status || "idle");
-  const error = useSelector((state) => state.locationBased?.error || null);
-  const [favorites, setFavorites] = useState([]);
+const NearbyAttractions = () => {
   const [selectedTab, setSelectedTab] = useState("12");
-  const isFirstRender = useRef(true);
-  const prevTabRef = useRef(selectedTab);
+  const [searchTerm, setSearchTerm] = useState("");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const {
+    items: locationBasedList,
+    status,
+    error,
+  } = useSelector((state) => state.locationBased);
+  const favorites = useSelector(selectFavoriteItems);
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
   const authState = JSON.parse(localStorage.getItem("authState") || "{}");
   const userId = authState.user?.uid;
-  const navigate = useNavigate();
 
-  // 초기 데이터 로드
+  const isFirstRender = useRef(true);
+  const prevTabRef = useRef(selectedTab);
+
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
-      dispatch(
-        fetchLocationBased({
-          mapX: "126.5311884",
-          mapY: "33.4996213",
-          radius: "5000",
-          contentTypeId: selectedTab,
-        })
-      );
-    }
-  }, []);
+    dispatch(fetchLocationBased({ contentTypeId: selectedTab }));
+  }, [dispatch, selectedTab]);
 
-  // 탭 변경 시 데이터 로드
-  useEffect(() => {
-    if (!isFirstRender.current && selectedTab !== prevTabRef.current) {
-      console.log("Tab changed from", prevTabRef.current, "to", selectedTab);
-      prevTabRef.current = selectedTab;
-      dispatch(
-        fetchLocationBased({
-          mapX: "126.5311884",
-          mapY: "33.4996213",
-          radius: "5000",
-          contentTypeId: selectedTab,
-        })
-      );
-    }
-  }, [selectedTab, dispatch]);
-
+  // 로그인한 사용자의 찜 목록 불러오기
   useEffect(() => {
     if (userId) {
       loadFavoritesFromFirestore();
-    } else {
-      // 로그인하지 않은 경우 로컬스토리지에서 로드
-      const storedFavorites = JSON.parse(
-        localStorage.getItem(`favorites_${userId || "anonymous"}`) || "[]"
-      );
-      setFavorites(storedFavorites);
     }
   }, [userId]);
 
   const loadFavoritesFromFirestore = async () => {
     try {
       const firestoreFavorites = await getFavoritesFromFirestore(userId);
-      setFavorites(firestoreFavorites);
-      // Firestore 데이터로 로컬스토리지 업데이트
-      localStorage.setItem(
-        `favorites_${userId}`,
-        JSON.stringify(firestoreFavorites)
-      );
+      dispatch(addFavorite(firestoreFavorites));
     } catch (error) {
       console.error("즐겨찾기 로드 중 오류:", error);
     }
@@ -114,24 +78,14 @@ const NearbyAttractions = ({ onSearch }) => {
     }
 
     try {
-      const currentFavorites = [...favorites];
-      const isFavorite = currentFavorites.some(
+      const isFavorite = favorites.some(
         (fav) => fav.contentId === item.contentId
       );
 
       if (isFavorite) {
         // 즐겨찾기 제거
-        if (userId) {
-          await removeFavoriteFromFirestore(userId, item.contentId);
-        }
-        const updatedFavorites = currentFavorites.filter(
-          (fav) => fav.contentId !== item.contentId
-        );
-        setFavorites(updatedFavorites);
-        localStorage.setItem(
-          `favorites_${userId || "anonymous"}`,
-          JSON.stringify(updatedFavorites)
-        );
+        await removeFavoriteFromFirestore(userId, item.contentId);
+        dispatch(removeFavorite(item.contentId));
       } else {
         // 즐겨찾기 추가
         const favoriteData = {
@@ -143,17 +97,8 @@ const NearbyAttractions = ({ onSearch }) => {
           contentTypeId: selectedTab,
         };
 
-        if (userId) {
-          await addFavoriteToFirestore(userId, favoriteData);
-          await loadFavoritesFromFirestore(); // Firestore에서 최신 데이터 다시 로드
-        } else {
-          const updatedFavorites = [...currentFavorites, favoriteData];
-          setFavorites(updatedFavorites);
-          localStorage.setItem(
-            `favorites_${userId || "anonymous"}`,
-            JSON.stringify(updatedFavorites)
-          );
-        }
+        await addFavoriteToFirestore(userId, favoriteData);
+        dispatch(addFavorite(favoriteData));
       }
     } catch (error) {
       console.error("즐겨찾기 처리 중 오류:", error);

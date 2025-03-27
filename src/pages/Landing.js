@@ -1,12 +1,9 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
 import SocialLogin from "../components/auth/SocialLogin";
 import heroBg from "../images/hero-bg.jpg";
 import "../styles/pages/Landing.scss";
 
 const Landing = () => {
-  const navigate = useNavigate();
-
   return (
     <div className="landing">
       <div

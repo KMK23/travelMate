@@ -27,7 +27,7 @@ const Header = () => {
       <div className="container">
         <Link to="/" className="logo">
           <i className="fas fa-map-marked-alt"></i>
-          트래블메이트
+          travelmate
         </Link>
 
         <nav className="nav-links">

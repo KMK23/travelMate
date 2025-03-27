@@ -36,41 +36,30 @@ const favoritesSlice = createSlice({
     items: [],
   },
   reducers: {
-    loadFavoritesFromStorage: (state, action) => {
-      const userId = action.payload;
-      console.log("Loading favorites for userId:", userId);
-      state.items = loadFavorites(userId);
-      console.log("Loaded items into state:", state.items);
+    setFavorites: (state, action) => {
+      state.items = action.payload;
     },
     addFavorite: (state, action) => {
-      const { item, userId } = action.payload;
-      console.log("Adding favorite:", item);
-      console.log("Current items:", state.items);
-
-      // 중복 체크
-      const isDuplicate = state.items.some(
-        (existing) => existing.contentId === item.contentId
-      );
-
-      if (!isDuplicate) {
-        state.items.push(item);
-        console.log("Updated items after add:", state.items);
-        saveFavorites(state.items, userId);
+      // 단일 아이템 추가인 경우
+      if (!Array.isArray(action.payload)) {
+        const isDuplicate = state.items.some(
+          (item) => item.contentId === action.payload.contentId
+        );
+        if (!isDuplicate) {
+          state.items.push(action.payload);
+        }
       } else {
-        console.log("Item already exists in favorites");
+        // 여러 아이템을 한번에 추가하는 경우 (초기 로드)
+        state.items = action.payload;
       }
     },
     removeFavorite: (state, action) => {
-      const { contentId, userId } = action.payload;
-      console.log("Removing favorite with contentId:", contentId);
-      state.items = state.items.filter((item) => item.contentId !== contentId);
-      console.log("Updated items after remove:", state.items);
-      saveFavorites(state.items, userId);
+      state.items = state.items.filter(
+        (item) => item.contentId !== action.payload
+      );
     },
-    clearFavorites: (state, action) => {
-      const userId = action.payload;
+    clearFavorites: (state) => {
       state.items = [];
-      saveFavorites(state.items, userId);
     },
   },
 });
@@ -83,11 +72,7 @@ export const selectFavoriteItems = createSelector(
   (favorites) => favorites?.items || []
 );
 
-export const {
-  addFavorite,
-  removeFavorite,
-  clearFavorites,
-  loadFavoritesFromStorage,
-} = favoritesSlice.actions;
+export const { setFavorites, addFavorite, removeFavorite, clearFavorites } =
+  favoritesSlice.actions;
 
 export default favoritesSlice.reducer;

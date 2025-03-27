@@ -23,6 +23,7 @@ import {
   where,
   setDoc,
   getDoc,
+  orderBy,
 } from "@firebase/firestore";
 
 // Your web app's Firebase configuration
@@ -39,7 +40,6 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
@@ -160,9 +160,15 @@ export const onAuthChange = (callback) => {
 export const addDatas = async (collectionName, data, userId = null) => {
   try {
     let docRef;
-    if (userId && collectionName === "favorites") {
-      // users/{userId}/favorites 컬렉션에 추가
-      docRef = await addDoc(collection(db, "users", userId, "favorites"), data);
+    if (
+      userId &&
+      (collectionName === "favorites" || collectionName === "plan")
+    ) {
+      // users/{userId}/favorites 또는 users/{userId}/plan 컬렉션에 추가
+      docRef = await addDoc(
+        collection(db, "users", userId, collectionName),
+        data
+      );
     } else {
       docRef = await addDoc(collection(db, collectionName), data);
     }
@@ -177,20 +183,54 @@ export const addDatas = async (collectionName, data, userId = null) => {
 export const getDatas = async (collectionName, userId = null) => {
   try {
     let querySnapshot;
-    if (userId && collectionName === "favorites") {
-      // users/{userId}/favorites 컬렉션에서 조회
-      querySnapshot = await getDocs(
-        collection(db, "users", userId, "favorites")
+    if (
+      userId &&
+      (collectionName === "favorites" || collectionName === "plan")
+    ) {
+      console.log(`Fetching ${collectionName} for userId:`, userId);
+      // users/{userId}/favorites 또는 users/{userId}/plan 컬렉션에서 조회
+      const collectionRef = collection(db, "users", userId, collectionName);
+      querySnapshot = await getDocs(collectionRef);
+      console.log(
+        `Found ${querySnapshot.docs.length} documents in ${collectionName}`
       );
     } else {
       querySnapshot = await getDocs(collection(db, collectionName));
     }
-    return querySnapshot.docs.map((doc) => ({
+    const data = querySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
     }));
+    console.log(`Processed data:`, data);
+    return data;
   } catch (error) {
-    console.error("Error getting data:", error);
+    console.error(`Error getting ${collectionName}:`, error);
+    throw error;
+  }
+};
+
+// 데이터 수정
+export const updateDatas = async (
+  collectionName,
+  docId,
+  data,
+  userId = null
+) => {
+  try {
+    let docRef;
+    if (
+      userId &&
+      (collectionName === "favorites" || collectionName === "plan")
+    ) {
+      // users/{userId}/favorites 또는 users/{userId}/plan 문서 수정
+      docRef = doc(db, "users", userId, collectionName, docId);
+    } else {
+      docRef = doc(db, collectionName, docId);
+    }
+    await updateDoc(docRef, data);
+    return { id: docId, ...data };
+  } catch (error) {
+    console.error("Error updating data:", error);
     throw error;
   }
 };
@@ -198,27 +238,20 @@ export const getDatas = async (collectionName, userId = null) => {
 // 데이터 삭제
 export const deleteDatas = async (collectionName, docId, userId = null) => {
   try {
-    if (userId && collectionName === "favorites") {
-      // users/{userId}/favorites/{docId} 문서 삭제
-      await deleteDoc(doc(db, "users", userId, "favorites", docId));
+    let docRef;
+    if (
+      userId &&
+      (collectionName === "favorites" || collectionName === "plan")
+    ) {
+      // users/{userId}/favorites 또는 users/{userId}/plan 문서 삭제
+      docRef = doc(db, "users", userId, collectionName, docId);
     } else {
-      await deleteDoc(doc(db, collectionName, docId));
+      docRef = doc(db, collectionName, docId);
     }
+    await deleteDoc(docRef);
     return docId;
   } catch (error) {
     console.error("Error deleting data:", error);
-    throw error;
-  }
-};
-
-// 데이터 수정
-export const updateDatas = async (collectionName, docId, data) => {
-  try {
-    const docRef = doc(db, collectionName, docId);
-    await updateDoc(docRef, data);
-    return { id: docId, ...data };
-  } catch (error) {
-    console.error("Error updating data:", error);
     throw error;
   }
 };
@@ -561,6 +594,63 @@ export const getFavoritesFromFirestore = async (userId) => {
     return favorites;
   } catch (error) {
     console.error("Firestore 즐겨찾기 목록 로드 중 오류:", error);
+    throw error;
+  }
+};
+
+// 여행 계획 관련 함수들
+export const addTravelPlan = async (userId, planData) => {
+  try {
+    const userPlanRef = collection(db, `users/${userId}/plan`);
+    const docRef = await addDoc(userPlanRef, {
+      ...planData,
+      createdAt: new Date().toISOString(),
+    });
+    return { id: docRef.id, ...planData };
+  } catch (error) {
+    console.error("Error adding travel plan:", error);
+    throw error;
+  }
+};
+
+export const getTravelPlans = async (userId) => {
+  try {
+    const userPlanRef = collection(db, `users/${userId}/plan`);
+    const q = query(userPlanRef, orderBy("date", "asc"));
+    const querySnapshot = await getDocs(q);
+
+    const plans = [];
+    querySnapshot.forEach((doc) => {
+      plans.push({ id: doc.id, ...doc.data() });
+    });
+    return plans;
+  } catch (error) {
+    console.error("Error getting travel plans:", error);
+    throw error;
+  }
+};
+
+export const updateTravelPlan = async (userId, planId, planData) => {
+  try {
+    const planRef = doc(db, `users/${userId}/plan`, planId);
+    await updateDoc(planRef, {
+      ...planData,
+      updatedAt: new Date().toISOString(),
+    });
+    return { id: planId, ...planData };
+  } catch (error) {
+    console.error("Error updating travel plan:", error);
+    throw error;
+  }
+};
+
+export const deleteTravelPlan = async (userId, planId) => {
+  try {
+    const planRef = doc(db, `users/${userId}/plan`, planId);
+    await deleteDoc(planRef);
+    return planId;
+  } catch (error) {
+    console.error("Error deleting travel plan:", error);
     throw error;
   }
 };

@@ -5,6 +5,7 @@ import favoritesReducer from "./slices/favoritesSlice";
 import authReducer from "./slices/authSlice";
 import locationBasedReducer from "./slices/locationBasedSlice";
 import searchReducer from "./slices/searchSlice";
+import travelReducer from "./slices/travelSlice";
 
 export const store = configureStore({
   reducer: {
@@ -14,5 +15,6 @@ export const store = configureStore({
     auth: authReducer,
     locationBased: locationBasedReducer,
     search: searchReducer,
+    travel: travelReducer,
   },
 });

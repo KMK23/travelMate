@@ -11,7 +11,6 @@ import Footer from "./components/common/Footer";
 import Home from "./pages/Home";
 import Landing from "./pages/Landing";
 import "./styles/App.scss";
-import SocialLogin from "./components/auth/SocialLogin";
 import NaverCallback from "./components/auth/NaverCallback";
 import Favorites from "./pages/Favorites";
 import LocationBased from "./pages/LocationBased";

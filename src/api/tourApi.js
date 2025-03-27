@@ -1,82 +1,69 @@
 import axios from "axios";
 
-const API_KEY =
+const SERVICE_KEY =
   "VbAFxad7/XYabkBZSFAosb4Z2yLoBcEYqM5YXpIaYOF2Ve1FLQwuiSnhWx5yy8rxIIKaWDiAMQMhuOmUaXDBiA==";
 const BASE_URL = "https://apis.data.go.kr/B551011/KorService1";
 
-// 캐시 설정
-const CACHE_DURATION = 5 * 60 * 1000; // 5분
-const cache = new Map();
-
 // XML을 파싱하는 함수
-const parseXML = (xmlString) => {
+const parseXML = (xmlText) => {
   const parser = new DOMParser();
-  const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+  const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+  const items = xmlDoc.getElementsByTagName("item");
 
-  // 에러 메시지 확인
-  const errMsg = xmlDoc.querySelector("errMsg")?.textContent;
-  const returnReasonCode =
-    xmlDoc.querySelector("returnReasonCode")?.textContent;
+  return Array.from(items).map((item) => {
+    const getElementValue = (tagName) =>
+      item.getElementsByTagName(tagName)[0]?.textContent || "";
 
-  if (errMsg && errMsg !== "OK") {
-    const errorMessage = `${errMsg} (코드: ${returnReasonCode})`;
-    console.error("API 에러:", errorMessage);
-    throw new Error(errorMessage);
-  }
-
-  // items 배열 추출
-  const items = xmlDoc.querySelectorAll("item");
-  return Array.from(items).map((item) => ({
-    contentId: item.querySelector("contentid")?.textContent,
-    title: item.querySelector("title")?.textContent,
-    addr1: item.querySelector("addr1")?.textContent,
-    firstimage: item.querySelector("firstimage")?.textContent,
-    tel: item.querySelector("tel")?.textContent,
-  }));
+    return {
+      contentId: getElementValue("contentid"),
+      contentTypeId: getElementValue("contenttypeid"),
+      title: getElementValue("title"),
+      addr1: getElementValue("addr1"),
+      addr2: getElementValue("addr2"),
+      firstimage: getElementValue("firstimage"),
+      tel: getElementValue("tel"),
+    };
+  });
 };
 
-const makeApiCall = async (endpoint, params) => {
+export const searchLocationBased = async ({
+  numOfRows = 30,
+  pageNo = 1,
+  contentTypeId,
+  areaCode,
+}) => {
+  const params = new URLSearchParams({
+    serviceKey: SERVICE_KEY,
+    numOfRows: String(numOfRows),
+    pageNo: String(pageNo),
+    MobileOS: "ETC",
+    MobileApp: "TravelMate",
+    _type: "xml",
+    listYN: "Y",
+    arrange: "A",
+  });
+
+  if (contentTypeId) {
+    params.append("contentTypeId", contentTypeId);
+  }
+
+  if (areaCode) {
+    params.append("areaCode", areaCode);
+  }
+
   try {
-    console.log("API 요청 파라미터:", params);
+    const response = await fetch(
+      `${BASE_URL}/areaBasedList1?${params.toString()}`
+    );
 
-    const response = await axios.get(`${BASE_URL}/${endpoint}`, {
-      params: {
-        serviceKey: API_KEY,
-        numOfRows: "50",
-        pageNo: "1",
-        MobileOS: "ETC",
-        MobileApp: "travelMate",
-        _type: "xml",
-        listYN: "Y",
-        arrange: "A",
-        ...params,
-      },
-    });
-
-    console.log("API 응답:", response.data);
-
-    // XML 응답 처리
-    if (response.data && typeof response.data === "string") {
-      return parseXML(response.data);
+    if (!response.ok) {
+      throw new Error("API 요청 실패");
     }
 
-    // JSON 응답 처리
-    if (response.data?.response?.body?.items?.item) {
-      const items = response.data.response.body.items.item;
-      return Array.isArray(items) ? items : [items];
-    }
-
-    throw new Error("API 응답 구조가 올바르지 않습니다.");
+    const xmlText = await response.text();
+    return parseXML(xmlText);
   } catch (error) {
     console.error("API 호출 중 오류 발생:", error);
-    if (error.response) {
-      console.error("에러 응답 데이터:", error.response.data);
-    }
     throw error;
   }
-};
-
-// 위치 기반 관광지 검색
-export const searchLocationBased = async (params) => {
-  return makeApiCall("locationBasedList1", params);
 };
