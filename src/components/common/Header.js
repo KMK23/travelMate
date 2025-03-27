@@ -2,15 +2,21 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../../store/slices/authSlice";
+import { signOutUser } from "../../firebase";
 import "./Header.scss";
 
 const Header = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    dispatch(logout());
-    navigate("/landing");
+  const handleLogout = async () => {
+    try {
+      await signOutUser();
+      dispatch(logout());
+      navigate("/landing");
+    } catch (error) {
+      console.error("로그아웃 실패:", error);
+    }
   };
 
   return (

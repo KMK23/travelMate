@@ -1,42 +1,163 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import {
+  signInWithNaver,
+  signInWithKakao,
+  getAuthResult,
+  onAuthChange,
+  signInWithGoogle,
+  saveUserToFirestore,
+} from "../../firebase";
+import { loginSuccess } from "../../store/slices/authSlice";
 import "./SocialLogin.css";
 
 const SocialLogin = () => {
-  const handleKakaoLogin = () => {
-    const KAKAO_CLIENT_ID = process.env.REACT_APP_KAKAO_CLIENT_ID;
-    const KAKAO_REDIRECT_URI = process.env.REACT_APP_KAKAO_REDIRECT_URI;
-    const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${KAKAO_REDIRECT_URI}&response_type=code`;
-    window.location.href = kakaoAuthUrl;
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [authStatus, setAuthStatus] = useState("초기화");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let unsubscribe;
+
+    const initializeAuth = async () => {
+      try {
+        setAuthStatus("인증 상태 확인 중");
+
+        // 인증 상태 변경 감지 설정
+        unsubscribe = onAuthChange((user) => {
+          if (user) {
+            console.log("사용자 로그인 감지:", user);
+            setAuthStatus("로그인됨");
+            dispatch(
+              loginSuccess({
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName,
+                photoURL: user.photoURL,
+              })
+            );
+            navigate("/");
+          } else {
+            console.log("로그인되지 않은 상태");
+            setAuthStatus("로그인 필요");
+          }
+        });
+
+        // 리다이렉트 결과 확인
+        const user = await getAuthResult();
+        if (user) {
+          console.log("리다이렉트 후 사용자 정보:", user);
+          setAuthStatus("인증 성공");
+          dispatch(
+            loginSuccess({
+              uid: user.uid,
+              email: user.email,
+              displayName: user.displayName,
+              photoURL: user.photoURL,
+            })
+          );
+          navigate("/");
+        }
+      } catch (error) {
+        console.error("인증 초기화 에러:", error);
+        setError(error.message);
+        setAuthStatus("인증 실패");
+      }
+    };
+
+    initializeAuth();
+
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+    };
+  }, [dispatch, navigate]);
+
+  const handleKakaoLogin = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const user = await signInWithKakao();
+      if (user) {
+        await saveUserToFirestore(user);
+        dispatch(loginSuccess(user));
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("카카오 로그인 실패:", error);
+      setError("카카오 로그인에 실패했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleNaverLogin = () => {
-    const NAVER_CLIENT_ID = process.env.REACT_APP_NAVER_CLIENT_ID;
-    const NAVER_REDIRECT_URI = process.env.REACT_APP_NAVER_REDIRECT_URI;
-    const STATE = "random_state";
-    const naverAuthUrl = `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${NAVER_CLIENT_ID}&redirect_uri=${NAVER_REDIRECT_URI}&state=${STATE}`;
-    window.location.href = naverAuthUrl;
+  const handleNaverLogin = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const user = await signInWithNaver();
+      if (user) {
+        await saveUserToFirestore(user);
+        dispatch(loginSuccess(user));
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("네이버 로그인 실패:", error);
+      setError("네이버 로그인에 실패했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const handleGoogleLogin = () => {
-    const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID;
-    const GOOGLE_REDIRECT_URI = process.env.REACT_APP_GOOGLE_REDIRECT_URI;
-    const googleAuthUrl = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${GOOGLE_REDIRECT_URI}&response_type=code&scope=email profile`;
-    window.location.href = googleAuthUrl;
+  const handleGoogleLogin = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const user = await signInWithGoogle();
+      if (user) {
+        await saveUserToFirestore(user);
+        dispatch(loginSuccess(user));
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("구글 로그인 실패:", error);
+      setError("구글 로그인에 실패했습니다.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="social-login-buttons">
-      <button className="social-login-button kakao" onClick={handleKakaoLogin}>
+    <div className="social-login">
+      <h2>소셜 로그인</h2>
+      {error && <div className="error-message">{error}</div>}
+
+      <button
+        className={`social-login-button kakao ${isLoading ? "disabled" : ""}`}
+        onClick={handleKakaoLogin}
+        disabled={isLoading}
+      >
         <span className="social-icon">K</span>
         카카오로 시작하기
       </button>
-      <button className="social-login-button naver" onClick={handleNaverLogin}>
+
+      <button
+        className={`social-login-button naver ${isLoading ? "disabled" : ""}`}
+        onClick={handleNaverLogin}
+        disabled={isLoading}
+      >
         <span className="social-icon">N</span>
         네이버로 시작하기
       </button>
+
       <button
-        className="social-login-button google"
+        className={`social-login-button google ${isLoading ? "disabled" : ""}`}
         onClick={handleGoogleLogin}
+        disabled={isLoading}
       >
         <span className="social-icon">G</span>
         구글로 시작하기

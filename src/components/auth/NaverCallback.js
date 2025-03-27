@@ -1,51 +1,41 @@
 import React, { useEffect } from "react";
-import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { loginSuccess } from "../../store/slices/authSlice";
 
 const NaverCallback = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   useEffect(() => {
-    const handleNaverCallback = async () => {
-      const code = new URL(window.location.href).searchParams.get("code");
-      const state = new URL(window.location.href).searchParams.get("state");
+    const naverLogin = new window.naver.LoginWithNaverId({
+      clientId: process.env.REACT_APP_NAVER_CLIENT_ID,
+      callbackUrl: `${window.location.origin}/auth/naver/callback`,
+    });
 
-      if (code && state) {
-        try {
-          // 서버에 인증 코드 전송
-          const response = await fetch("/api/auth/naver/callback", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ code, state }),
-          });
+    naverLogin.init();
 
-          if (response.ok) {
-            const data = await response.json();
-            // 로그인 성공 처리
-            dispatch(loginSuccess(data.user));
-            navigate("/");
-          } else {
-            console.error("네이버 로그인 실패");
-            navigate("/landing");
-          }
-        } catch (error) {
-          console.error("네이버 로그인 처리 중 오류 발생:", error);
-          navigate("/landing");
-        }
+    naverLogin.getLoginStatus((status) => {
+      if (status) {
+        const user = {
+          uid: `naver:${naverLogin.user.id}`,
+          displayName: naverLogin.user.name,
+          email: naverLogin.user.email,
+          photoURL: naverLogin.user.profile_image,
+          provider: "naver",
+        };
+        dispatch(loginSuccess(user));
+        navigate("/");
+      } else {
+        console.error("네이버 로그인 실패");
+        navigate("/landing");
       }
-    };
-
-    handleNaverCallback();
+    });
   }, [dispatch, navigate]);
 
   return (
-    <div className="oauth-callback-container">
-      <div className="loading-spinner"></div>
-      <p>네이버 로그인 처리 중...</p>
+    <div className="loading">
+      <p>네이버 로그인 처리중...</p>
     </div>
   );
 };

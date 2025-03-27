@@ -10,8 +10,9 @@ import Header from "./components/common/Header";
 import Footer from "./components/common/Footer";
 import Home from "./pages/Home";
 import Landing from "./pages/Landing";
-import NaverCallback from "./components/auth/NaverCallback";
 import "./styles/App.scss";
+import SocialLogin from "./components/auth/SocialLogin";
+import NaverCallback from "./components/auth/NaverCallback";
 
 const PrivateRoute = ({ children }) => {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
@@ -23,45 +24,27 @@ const PublicRoute = ({ children }) => {
   return !isAuthenticated ? children : <Navigate to="/" />;
 };
 
-function App() {
+const App = () => {
   const isAuthenticated = useSelector((state) => state.auth.isAuthenticated);
 
   return (
     <Router>
-      <div className="App">
-        {isAuthenticated && <Header />}
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <PrivateRoute>
-                <Home />
-              </PrivateRoute>
-            }
-          />
-          <Route
-            path="/landing"
-            element={
-              <PublicRoute>
-                <Landing />
-              </PublicRoute>
-            }
-          />
-          <Route path="/auth/naver/callback" element={<NaverCallback />} />
-          {/* 다른 소셜 로그인 콜백 라우트 */}
-          <Route
-            path="/auth/kakao/callback"
-            element={<div>카카오 로그인 처리 중...</div>}
-          />
-          <Route
-            path="/auth/google/callback"
-            element={<div>구글 로그인 처리 중...</div>}
-          />
-        </Routes>
-        {isAuthenticated && <Footer />}
-      </div>
+      <Header />
+      <Routes>
+        <Route path="/landing" element={<Landing />} />
+        <Route path="/auth/naver/callback" element={<NaverCallback />} />
+        <Route
+          path="/"
+          element={
+            <PrivateRoute>
+              <Home />
+            </PrivateRoute>
+          }
+        />
+      </Routes>
+      <Footer />
     </Router>
   );
-}
+};
 
 export default App;
